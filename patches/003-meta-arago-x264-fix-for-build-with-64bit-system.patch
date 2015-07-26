@@ -1,0 +1,17 @@
+From: Karthik Ramanan <a0393906@ti.com>
+Date: Fri, 20 Jun 2014 12:21:35 +0000 (-0700)
+Subject: x264: Updates SRCREV for x264 to adapt to change in upstream repo
+X-Git-Url: http://arago-project.org/git/projects/meta-arago-glsdk.git?p=projects%2Fmeta-arago-glsdk.git;p=projects%2Fmeta-arago-glsdk.git;a=commitdiff_plain;h=a0c23900703dd66bf28760cbdaf6bdec97c9bd72
+
+x264: Updates SRCREV for x264 to adapt to change in upstream repo
+
+Signed-off-by: Karthik Ramanan <a0393906@ti.com>
+---
+
+diff --git a/meta-arago-extras/recipes-multimedia/x264/x264_git.bbappend b/meta-arago-extras/recipes-multimedia/x264/x264_git.bbappend
+new file mode 100644
+index 0000000..c509670
+--- /dev/null
++++ b/meta-arago-extras/recipes-multimedia/x264/x264_git.bbappend
+@@ -0,0 +1 @@
++SRCREV = "bfed708c5358a2b4ef65923fb0683cefa9184e6f"

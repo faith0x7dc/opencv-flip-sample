@@ -1,0 +1,11 @@
+diff --git a/meta-arago-extras/recipes-kernel/cryptodev/cryptodev_1.6.bb b/meta-arago-extras/recipes-kernel/cryptodev/cryptodev_1.6.bb
+index 939a795..a6c2021 100644
+--- a/meta-arago-extras/recipes-kernel/cryptodev/cryptodev_1.6.bb
++++ b/meta-arago-extras/recipes-kernel/cryptodev/cryptodev_1.6.bb
+@@ -6,4 +6,5 @@ RCONFLICTS_${PN} = "ocf-linux"
+ 
+ inherit module
+ 
+-PR = "r0"
++PR = "r1"
++RREPLACES_${PN}_append_dra7xx-evm = "ocf-linux"

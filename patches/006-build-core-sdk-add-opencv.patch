@@ -1,0 +1,12 @@
+--- a/build-core-sdk.sh	2015-07-26 19:37:17.121607988 +0900
++++ b/build-core-sdk.sh	2015-07-26 19:37:09.577607988 +0900
+@@ -23,6 +23,9 @@
+ 
+ echo "[GLSDK]> echo ARAGO_BRAND = \"glsdk\" >> conf/local.conf"
+ echo "ARAGO_BRAND = \"glsdk\"" >> conf/local.conf
++echo "IMAGE_INSTALL += \" libopencv-core\"" >> conf/local.conf
++echo "IMAGE_INSTALL += \" libopencv-imgproc\"" >> conf/local.conf
++echo "IMAGE_INSTALL += \" libopencv-highgui\"" >> conf/local.conf
+ 
+ echo "In which directory do you want to place the downloads for the Yocto build ?(if this directory does not exist it will be created)"
+ echo "Ensure that complete path is provided."

@@ -1,0 +1,143 @@
+GLSDK 6.04のビルド
+-------------------
+
+↓この辺りを見ながら進める
+http://processors.wiki.ti.com/index.php/DRA7xx_GLSDK_Software_Developers_Guide#Starting_your_software_development
+http://processors.wiki.ti.com/index.php/GLSDK_FAQs
+
+setupの途中で色々聞かれるが、全てデフォルト設定で進める(無用なトラブルを防ぐ為)
+
+# Starting your software development
+
+$ chmod +x ti-glsdk_dra7xx-evm_6_04_00_02_linux-x64-installer.bin
+$ ./ti-glsdk_dra7xx-evm_6_04_00_02_linux-x64-installer.bin
+途中の選択肢は全てデフォルト
+
+$ export GLSDK=${HOME}/ti-glsdk_dra7xx-evm_6_04_00_02
+$ cd ${GLSDK}
+$ ./setup.sh
+
+バックアップを取る
+
+$ pushd ${HOME}
+$ tar cf ti-glsdk_dra7xx-evm_6_04_00_02.150725-1.tar ti-glsdk_dra7xx-evm_6_04_00_02
+$ popd
+
+# Repo tool Usage
+
+$ export PATH=${GLSDK}/bin:$PATH
+$ cd ${GLSDK}
+$ ./bin/fetch-sources.sh
+
+バックアップを取る
+
+$ pushd ${HOME}
+$ tar cf ti-glsdk_dra7xx-evm_6_04_00_02.150725-2.tar ti-glsdk_dra7xx-evm_6_04_00_02
+$ popd
+
+# Building Yocto Filesystem
+
+$ export PATH=${HOME}/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin:${PATH}
+$ cd ${GLSDK}
+$ ./bin/setup-yocto.sh
+
+$ cd yocto-layers
+$ mkdir downloads
+
+バックアップを取る
+
+$ pushd ${HOME}
+$ tar cf ti-glsdk_dra7xx-evm_6_04_00_02.150725-3.tar ti-glsdk_dra7xx-evm_6_04_00_02
+$ popd
+
+#if 0
+$ ./build-core-sdk.sh dra7xx-evm
+
+pseudo-native でビルドエラー
+
+http://processors.wiki.ti.com/index.php/GLSDK_FAQs
+How to fix the pseudo compile failure on 64-bit machines?
+
+pseudo-native でのビルドエラーを回避
+$ sed -i -e 's/^NO32LIBS = .*/NO32LIBS = "1"/g' sources/meta-arago/meta-arago-distro/conf/distro/arago.conf
+
+$ ./build-core-sdk.sh dra7xx-evm
+#endif
+
+$ ./oe-layertool-setup.sh -f configs/glsdk/glsdk-06.04.00.02-config.txt
+
+pseudo-native でのビルドエラーを回避
+$ pushd sources/meta-arago
+$ sed -i -e 's/^NO32LIBS = .*/NO32LIBS = "1"/g' meta-arago-distro/conf/distro/arago.conf
+$ git diff -- meta-arago-distro/conf/distro/arago.conf > ../../001-meta-arago-arago-conf-fix-for-build-with-64bit-system.patch
+$ popd
+
+$ ./build-core-sdk.sh dra7xx-evm
+
+opensslでビルドエラー
+
+http://processors.wiki.ti.com/index.php/GLSDK_FAQs
+How to fix the openssl build failure on a 64-bit machine?
+
+$ pushd sources/meta-arago
+$ echo 'RREPLACES_${PN}_append_dra7xx-evm = "ocf-linux"' >> meta-arago-extras/recipes-kernel/cryptodev/cryptodev_1.6.bb
+$ sed -i -e 's/PR = .*/PR = "r1"/g' meta-arago-extras/recipes-kernel/cryptodev/cryptodev_1.6.bb
+$ git diff -- meta-arago-extras/recipes-kernel/cryptodev/cryptodev_1.6.bb > ../../002-meta-arago-cryptodev-fix-for-build-with-64bit-system.patch
+$ popd
+
+$ ./build-core-sdk.sh dra7xx-evm
+
+x264でビルドエラー
+
+http://processors.wiki.ti.com/index.php/GLSDK_FAQs
+How to fix build failures with x264 component?
+
+$ curl -L "http://arago-project.org/git/projects/meta-arago-glsdk.git?p=projects/meta-arago-glsdk.git;a=commitdiff_plain;h=a0c23900703dd66bf28760cbdaf6bdec97c9bd72" > 003-meta-arago-x264-fix-for-build-with-64bit-system.patch
+$ pushd sources/meta-arago
+$ patch -p1 < ../../003-meta-arago-x264-fix-for-build-with-64bit-system.patch
+$ popd
+
+$ ./build-core-sdk.sh dra7xx-evm
+
+uimでfetch error
+
+最新では、meta-arago -> meta-tiに移動していて、リポジトリも以下に変更されている
+　　git://git.ti.com/ti-bt/uim.git
+
+GLSDK 6.04で指定されているrevisionは存在しているようなので、SRC_URIだけを差し替える
+
+$ pushd sources/meta-arago
+$ sed -i -e 's|SRC_URI = "git://gitorious.org/uim/uim.git|SRC_URI = "git://git.ti.com/ti-bt/uim.git|' meta-arago-extras/recipes-connectivity/uim/uim_git.bb
+$ git diff -- meta-arago-extras/recipes-connectivity/uim/uim_git.bb > ../../004-meta-arago-uim-fix-for-build.patch
+$ popd
+
+$ ./build-core-sdk.sh dra7xx-evm
+
+bluez-toolsでfetch error
+
+最新では、bluez関連がmeta-aragoから削除されている
+
+bluez-toolsはbaserockの以下にforkされているので、それを代替として使用する
+  git://git.baserock.org/delta/bluez-tools.git
+
+meta-arago-extras/recipes-connectivity/bluez-tools/bluez-tools_git.bb
+
+
+$ pushd sources/meta-arago
+$ sed -i -e 's|SRC_URI = "git://gitorious.org/bluez-tools/bluez-tools.git;protocol=git"|SRC_URI = "git://git.baserock.org/delta/bluez-tools.git;protocol=git"|' meta-arago-extras/recipes-connectivity/bluez-tools/bluez-tools_git.bb
+$ git diff -- meta-arago-extras/recipes-connectivity/bluez-tools/bluez-tools_git.bb > ../../005-meta-arago-bluez-tools-fix-for-build.patch
+$ popd
+
+$ ./build-core-sdk.sh dra7xx-evm
+
+とりあえず、ビルド完走
+
+OpenCVの追加
+
+build-core-sdk.sh に以下の記述を追加(echo "ARAGO_BRAND = \"glsdk\"" >> conf/local.conf の後)
+
+echo "IMAGE_INSTALL += \" libopencv-core\"" >> conf/local.conf
+echo "IMAGE_INSTALL += \" libopencv-imgproc\"" >> conf/local.conf
+echo "IMAGE_INSTALL += \" libopencv-highgui\"" >> conf/local.conf
+
+$ ./build-core-sdk.sh dra7xx-evm
